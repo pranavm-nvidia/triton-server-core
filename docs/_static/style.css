@@ -1,0 +1,34 @@
+code.literal {
+    color: #4e9a06;
+    font-family: monospace;
+    font-size: var(--font-size-normal);
+}
+
+.summary-example {
+    margin-bottom: .75rem
+}
+
+.sidebar-brand-text {
+    text-align: center;
+    margin: 0 0;
+}
+
+html {
+    font-size: 100%;
+}
+
+section {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.func-overload-sig {
+    padding-left: 3em !important;
+    color: var(--color-api-overall);
+    font-style: normal;
+}
+
+.func-overload-sig p {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
+}

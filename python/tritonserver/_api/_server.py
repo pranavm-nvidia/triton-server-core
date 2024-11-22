@@ -110,27 +110,28 @@ class ModelLoadDeviceLimit:
 
 @dataclass(slots=True)
 class Options:
-    """Server Options.
+    """
+    Server Options.
 
     Parameters
     ----------
 
-    model_repository : str | list[str], default []
+    model_repository : str | list[str]
+        default []
         Model repository path(s).
         At least one path is required.
         See :c:func:`TRITONSERVER_ServerOptionsSetModelRepositoryPath`
 
-    server_id : str, default 'triton'
+    server_id : str
+        default 'triton'
         Textural ID for the server.
         See :c:func:`TRITONSERVER_ServerOptionsSetServerId`
 
     model_control_mode : ModelControlMode, default ModelControlModel.NONE
-        Model control mode.
-        ModelControlMode.NONE : All models in the repository are loaded on startup.
-        ModelControlMode.POLL : All models in the repository are loaded on startup.
-                                Model repository changes can be applied using `poll_model_repository`.
-        ModelControlMode.EXPLICIT : Models will not be loaded at startup and need to be explicitly loaded and unloaded
-                                    using model control APIs `load_model`, `unload_model`.
+        * Model control mode.
+        * ModelControlMode.NONE: All models in the repository are loaded on startup.
+        * ModelControlMode.POLL: All models in the repository are loaded on startup. Model repository changes can be applied using `poll_model_repository`.
+        * ModelControlMode.EXPLICIT: Models will not be loaded at startup and need to be explicitly loaded and unloaded using model control APIs `load_model`, `unload_model`.
         See :c:func:`TRITONSERVER_ServerOptionsSetModelControlMode`
 
     startup_models : list[str], default []
@@ -282,17 +283,13 @@ class Options:
     strict_model_config: bool = False
 
     rate_limiter_mode: RateLimitMode = RateLimitMode.OFF
-    rate_limiter_resources: list[RateLimiterResource] = field(
-        default_factory=list[RateLimiterResource]
-    )
+    rate_limiter_resources: list[RateLimiterResource] = field(default_factory=list[RateLimiterResource])
 
     pinned_memory_pool_size: uint = 1 << 28
     cuda_memory_pool_sizes: dict[int, uint] = field(default_factory=dict[int, uint])
 
     #   response_cache_size: Annotated[int, ctypes.c_uint] = 0
-    cache_config: dict[str, dict[str, Any]] = field(
-        default_factory=dict[str, dict[str, Any]]
-    )
+    cache_config: dict[str, dict[str, Any]] = field(default_factory=dict[str, dict[str, Any]])
     cache_directory: str = "/opt/tritonserver/caches"
 
     min_supported_compute_capability: float = 6.0
@@ -320,18 +317,10 @@ class Options:
 
     backend_directory: str = "/opt/tritonserver/backends"
     repo_agent_directory: str = "/opt/tritonserver/repoagents"
-    model_load_device_limits: list[ModelLoadDeviceLimit] = field(
-        default_factory=list[ModelLoadDeviceLimit]
-    )
-    backend_configuration: dict[str, dict[str, str]] = field(
-        default_factory=dict[str, dict[str, str]]
-    )
-    host_policies: dict[str, dict[str, str]] = field(
-        default_factory=dict[str, dict[str, str]]
-    )
-    metrics_configuration: dict[str, dict[str, str]] = field(
-        default_factory=dict[str, dict[str, str]]
-    )
+    model_load_device_limits: list[ModelLoadDeviceLimit] = field(default_factory=list[ModelLoadDeviceLimit])
+    backend_configuration: dict[str, dict[str, str]] = field(default_factory=dict[str, dict[str, str]])
+    host_policies: dict[str, dict[str, str]] = field(default_factory=dict[str, dict[str, str]])
+    metrics_configuration: dict[str, dict[str, str]] = field(default_factory=dict[str, dict[str, str]])
 
     def _cascade_log_levels(self) -> None:
         if self.log_verbose > 0:
@@ -376,9 +365,7 @@ class Options:
             options.set_cache_config(cache_name, json.dumps(settings))
 
         options.set_cache_directory(self.cache_directory)
-        options.set_min_supported_compute_capability(
-            self.min_supported_compute_capability
-        )
+        options.set_min_supported_compute_capability(self.min_supported_compute_capability)
         options.set_exit_on_error(self.exit_on_error)
         options.set_strict_readiness(self.strict_readiness)
         options.set_exit_timeout(self.exit_timeout)
@@ -483,9 +470,7 @@ class Server:
 
     """
 
-    def __init__(
-        self, options: Optional[Options] = None, **kwargs: Unpack[Options]
-    ) -> None:
+    def __init__(self, options: Optional[Options] = None, **kwargs: Unpack[Options]) -> None:
         """Initialize Triton Inference Server
 
         Initialize Triton Inference Server based on configuration
@@ -587,15 +572,9 @@ class Server:
         if not isinstance(self._server, Server._UnstartedServer):
             raise InvalidArgumentError("Server already started")
 
-        self._server = TRITONSERVER_Server(
-            self.options._create_tritonserver_server_options()
-        )
+        self._server = TRITONSERVER_Server(self.options._create_tritonserver_server_options())
         start_time = time.time()
-        while (
-            wait_until_ready
-            and not self.ready()
-            and ((timeout is None) or (time.time() - start_time) < timeout)
-        ):
+        while wait_until_ready and not self.ready() and ((timeout is None) or (time.time() - start_time) < timeout):
             time.sleep(polling_interval)
         if wait_until_ready and not self.ready():
             raise UnavailableError("Timeout before ready")
@@ -661,9 +640,7 @@ class Server:
 
         self._server.unregister_model_repository(repository_path)
 
-    def register_model_repository(
-        self, repository_path: str, name_mapping: Optional[dict[str, str]] = None
-    ) -> None:
+    def register_model_repository(self, repository_path: str, name_mapping: Optional[dict[str, str]] = None) -> None:
         """Add a new model repository.
 
         Adds a new model repository.
@@ -708,9 +685,7 @@ class Server:
         if name_mapping is None:
             name_mapping = {}
 
-        name_mapping_list = [
-            TRITONSERVER_Parameter(name, value) for name, value in name_mapping.items()
-        ]
+        name_mapping_list = [TRITONSERVER_Parameter(name, value) for name, value in name_mapping.items()]
 
         self._server.register_model_repository(repository_path, name_mapping_list)
 
@@ -924,10 +899,7 @@ class Server:
         """
 
         if parameters is not None:
-            parameter_list = [
-                TRITONSERVER_Parameter(name, value)
-                for name, value in parameters.items()
-            ]
+            parameter_list = [TRITONSERVER_Parameter(name, value) for name, value in parameters.items()]
             self._server.load_model_with_parameters(model_name, parameter_list)
         else:
             self._server.load_model(model_name)
@@ -990,9 +962,7 @@ class Server:
             self._server.unload_model(model.name)
 
         if wait_until_unloaded:
-            model_versions = [
-                key for key in self.models().keys() if key[0] == model.name
-            ]
+            model_versions = [key for key in self.models().keys() if key[0] == model.name]
             start_time = time.time()
             while not self._model_unloaded(model_versions) and (
                 (timeout is None) or (time.time() - start_time < timeout)
@@ -1039,9 +1009,7 @@ class Server:
         if isinstance(self._server, Server._UnstartedServer):
             raise InvalidArgumentError("Server not started")
 
-        models = json.loads(
-            self._server.model_index(exclude_not_ready).serialize_to_json()
-        )
+        models = json.loads(self._server.model_index(exclude_not_ready).serialize_to_json())
 
         for model in models:
             if "version" in model:
@@ -1079,9 +1047,7 @@ class Metric(TRITONSERVER_Metric):
         """
 
         if labels is not None:
-            parameters = [
-                TRITONSERVER_Parameter(name, value) for name, value in labels.items()
-            ]
+            parameters = [TRITONSERVER_Parameter(name, value) for name, value in labels.items()]
         else:
             parameters = []
 
